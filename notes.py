@@ -83,7 +83,17 @@ def load_notes():
     global data
     global id_last
     id_last = 0
-    file = open(file_name, 'r')
+
+    try:
+        with open(file_name, encoding='utf-8') as file:
+            file = open(file_name, 'r')
+    except FileNotFoundError:
+        print(f">>> Внимание!!! Запрашиваемый файл {file_name} не найден!!!")
+        print("...будет создан пустой файл")
+        file = open(file_name, 'w')
+        file.close()
+        return
+
     data_file = [i.rstrip() for i in file]
     file.close()
     print("* файл {0} прочитан...".format(file_name))
@@ -92,7 +102,7 @@ def load_notes():
         i[0] = int(i[0])
         if i[0]>id_last: id_last = i[0]
         data.append(i)
-    print ("последний ID =", id_last, type(id_last))
+    print ("последний ID =", id_last)
 
 # 1 - вывод в терминал списка заметок
 def print_data(data, index):
