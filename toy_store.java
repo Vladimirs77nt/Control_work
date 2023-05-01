@@ -28,38 +28,131 @@
 В 20% двойка
 И в 60% тройка. */
 
-import java.util.PriorityQueue;
 import java.util.ArrayList;
+import java.util.PriorityQueue;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Toy_store {
+static Scanner sc = new Scanner(System.in);
 
     public static void main(String[] args) {
-        System.out.println("Программа запущена");
-        ArrayList<Product> prizes = new ArrayList<>();
-        prizes.add(new Product(1, "Конструктор", 20));
-        prizes.add(new Product(2, "Медвежонок", 30));
-        prizes.add(new Product(3, "Самолетик", 40));
-        prizes.add(new Product(4, "Кукла", 25));
-        int probability = 0;
-        for (Product i : prizes) {
-            System.out.println(i.toString());
-            probability += i.getProbability();
+
+        // формируем названия призов (пользовательский ввод)
+        ArrayList <Toy> prizes = new ArrayList<>();
+        System.out.print("Введите + если нужно ввести вручную список призов (иначе сформируется по умолчанию): ");
+        
+        String numStr = sc.nextLine();
+        if (numStr.equals("+")) {                        // ручной ввод списка игрушек-призов
+            prizes = getListPrize();
+        }
+        else {                                      // предварительно заданный список игрушек-призов
+            prizes.add(new Toy(1, "Конструктор", 2));
+            prizes.add(new Toy(2, "Робот", 2));
+            prizes.add(new Toy(3, "Кукла", 6));
+            System.out.println();
+            for (int i = 0; i < prizes.size(); i++) {
+                Toy toy = prizes.get(i);
+                System.out.println(">>> Приз №" + toy.getId());
+                System.out.println("> Название приза: " + toy.getName());
+                System.out.println("> Шанс выпадания: " + toy.getProbability());
+                System.out.println();
+            }
         }
 
-        System.out.println(probability);
+        // формируем список призов
+        PriorityQueue <Toy> basket_of_prizes = new PriorityQueue<>();
+        for (int j = 0; j < 10; j++) {
+            Toy priz = getPrize(prizes);
+            System.out.println("выпал " + priz.toString());
+            basket_of_prizes.add(priz);
+        }
+    sc.close();
+    }
 
+// -------------------------------------------------------------------------------------------
 
-        PriorityQueue<Product> basket_of_prizes = new PriorityQueue<>();
+    // функция создания списка призов (объекты класса-контсркутора Toy)
+    public static ArrayList <Toy> getListPrize() {
+        int num;
+        String numStr;
+        while (true) {
+            System.out.print("Введите количество призов (от 3 и более): ");
+            numStr = sc.nextLine();
+            if (isNumeric(numStr) && Integer.parseInt (numStr)>=3) {
+                num = Integer.parseInt (numStr);
+                break;
+            }
+        }
+        System.out.println();
+        ArrayList <Toy> prizes = new ArrayList<>();
+        int id = 1;
+        for (int i = 0; i < num; i++) {
+            System.out.println(">>> Приз №" + id);
+            System.out.print("> Введите название приза: ");
+            String name = sc.nextLine();
+            int chance = 0;
+            while (true) {
+                System.out.print("> Введите шанс выпадания: ");
+                numStr = sc.nextLine();
+                if (isNumeric(numStr) && Integer.parseInt (numStr)>0) {
+                    chance = Integer.parseInt (numStr);
+                    break;
+                }
+            }
+            
+            System.out.println();
+            prizes.add(new Toy(id, name, chance));
+            id += 1;
+        }
+        return prizes;
+    }
+
+    /**
+     * Проверка введенной строки на число
+     * @param strNum
+     * @return True / False
+     */
+    public static boolean isNumeric(String strNum) {
+        if (strNum == null) {
+            return false;
+        }
+        try {
+            double d = Double.parseDouble(strNum);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+    * Метод получения приза
+    * @param prizes - на входе список призов ArrayList<Product>
+     * @return 
+    * @return объект приза <Product>
+    */
+    public static Toy getPrize(ArrayList<Toy> list) {
+        int probability = 0;
+        for (Toy i : list) probability += i.getProbability();
+        int p = 0;
+        int p2;
+            int n = new Random().nextInt(probability);
+            for (Toy i : list) {
+                p2 = i.getProbability();
+                if (n<(p+p2)) return i;
+                p += p2;
+            }
+            return null;
     }
 }
-
-class Product{
-    private int id;          // ID номер
+// -------------------------------------------------------------------------------------------
+// класс-конструктор игрушки
+class Toy implements Comparable<Toy>{
+    private int id;          // ID номер игрушки
     private String name;     // название игрушки
-    private int probability; // частота выпадания, шанс
+    private int probability; // частота выпадания игрущки
     
-    public Product(int id, String name, int probability) {
+    public Toy(int id, String name, int probability) {
         this.id = id;
         this.name = name;
         this.probability = probability;
@@ -67,31 +160,23 @@ class Product{
 
     @Override
     public String toString() {
-        return "Приз {" + "id = " + id + ", " + name + ", вероятность: " + probability + "}";
+        return "Игрушка {" + "id = " + id + ", " + name + ", вероятность: " + probability + "}";
     }
 
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public int getProbability() {
         return probability;
     }
 
-    public void setProbability(int probability) {
-        this.probability = probability;
+    @Override
+    public int compareTo(Toy o) {
+        return 0;
     }
-  
 }
