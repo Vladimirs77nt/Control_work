@@ -32,9 +32,12 @@ import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Scanner;
+import java.io.FileWriter;  
+import java.io.IOException;  
+
 
 public class Toy_store {
-static Scanner sc = new Scanner(System.in);
+static Scanner sc = new Scanner(System.in, "Cp866");
 
     public static void main(String[] args) {
 
@@ -43,31 +46,40 @@ static Scanner sc = new Scanner(System.in);
         System.out.print("Введите + если нужно ввести вручную список призов (иначе сформируется по умолчанию): ");
         
         String numStr = sc.nextLine();
-        if (numStr.equals("+")) {                        // ручной ввод списка игрушек-призов
+        if (numStr.equals("+")) {
+            // ручной ввод списка игрушек-призов
             prizes = getListPrize();
         }
-        else {                                      // предварительно заданный список игрушек-призов
-            prizes.add(new Toy(1, "Конструктор", 2));
+        else {
+            // предварительно заданный список игрушек-призов
+            prizes.add(new Toy(1, "Конструктор", 4));
             prizes.add(new Toy(2, "Робот", 2));
             prizes.add(new Toy(3, "Кукла", 6));
             System.out.println();
             for (int i = 0; i < prizes.size(); i++) {
                 Toy toy = prizes.get(i);
                 System.out.println(">>> Приз №" + toy.getId());
-                System.out.println("> Название приза: " + toy.getName());
-                System.out.println("> Шанс выпадания: " + toy.getProbability());
+                System.out.println("  > Название приза: " + toy.getName());
+                System.out.println("  > Шанс выпадания: " + toy.getProbability());
                 System.out.println();
             }
         }
+        sc.close();
 
-        // формируем список призов
+        // формируем список из 10-ти призов (очередь PriorityQueue)
+        int count = 10; // кол-во призов
         PriorityQueue <Toy> basket_of_prizes = new PriorityQueue<>();
-        for (int j = 0; j < 10; j++) {
+        String prizResult = ""; // результирующая строка для записи в файл
+        for (int j = 0; j < count; j++) {
             Toy priz = getPrize(prizes);
-            System.out.println("выпал " + priz.toString());
             basket_of_prizes.add(priz);
+            String prize = String.format("Приз №%-3s %-14s %-30s",j+1, priz.getName(), priz.toString());
+            prizResult += prize;
+            if (j<(count-1)) prizResult += "\n";
         }
-    sc.close();
+
+        System.out.println(prizResult); // вывод резуьтата в терминал
+        saveresult(prizResult);         // запись в файл
     }
 
 // -------------------------------------------------------------------------------------------
@@ -83,22 +95,24 @@ static Scanner sc = new Scanner(System.in);
                 num = Integer.parseInt (numStr);
                 break;
             }
+            else System.out.println("  ... неверный ввод, повторите");
         }
         System.out.println();
         ArrayList <Toy> prizes = new ArrayList<>();
         int id = 1;
         for (int i = 0; i < num; i++) {
             System.out.println(">>> Приз №" + id);
-            System.out.print("> Введите название приза: ");
+            System.out.print("  > Введите название приза: ");
             String name = sc.nextLine();
             int chance = 0;
             while (true) {
-                System.out.print("> Введите шанс выпадания: ");
+                System.out.print("  > Введите шанс выпадания: ");
                 numStr = sc.nextLine();
                 if (isNumeric(numStr) && Integer.parseInt (numStr)>0) {
                     chance = Integer.parseInt (numStr);
                     break;
                 }
+                else System.out.println("  ... неверный ввод, повторите");
             }
             
             System.out.println();
@@ -108,11 +122,7 @@ static Scanner sc = new Scanner(System.in);
         return prizes;
     }
 
-    /**
-     * Проверка введенной строки на число
-     * @param strNum
-     * @return True / False
-     */
+    // Проверка введенной строки на число
     public static boolean isNumeric(String strNum) {
         if (strNum == null) {
             return false;
@@ -125,12 +135,7 @@ static Scanner sc = new Scanner(System.in);
         return true;
     }
 
-    /**
-    * Метод получения приза
-    * @param prizes - на входе список призов ArrayList<Product>
-     * @return 
-    * @return объект приза <Product>
-    */
+    // Метод получения приза из списка призов (входной аргумент ArrayList<Toy>)
     public static Toy getPrize(ArrayList<Toy> list) {
         int probability = 0;
         for (Toy i : list) probability += i.getProbability();
@@ -144,9 +149,22 @@ static Scanner sc = new Scanner(System.in);
             }
             return null;
     }
+
+    // функция записи строки в файл
+    public static void saveresult(String prizes) {
+        String filename = "result.txt";
+        try(FileWriter writer = new FileWriter(filename, false))
+        {
+            writer.write(prizes);
+        }
+        catch(IOException ex){
+            System.out.println(ex.getMessage());
+        } 
+    }
 }
+
 // -------------------------------------------------------------------------------------------
-// класс-конструктор игрушки
+// класс-конструктор игрушки - объекты <Toy>
 class Toy implements Comparable<Toy>{
     private int id;          // ID номер игрушки
     private String name;     // название игрушки
@@ -160,7 +178,7 @@ class Toy implements Comparable<Toy>{
 
     @Override
     public String toString() {
-        return "Игрушка {" + "id = " + id + ", " + name + ", вероятность: " + probability + "}";
+        return "{" + "id = " + id + ", " + name + ", вероятность: " + probability + "}";
     }
 
     public int getId() {
